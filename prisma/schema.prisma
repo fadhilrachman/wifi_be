@@ -11,8 +11,18 @@ model users {
   id        Int      @id @default(autoincrement())
   name      String   @db.VarChar(255)
   email     String   @unique(map: "email") @db.VarChar(255)
-  address   String?  @db.VarChar(255)
   password  String?  @db.VarChar(255)
+  lastLogOut DateTime? 
+  is_email_verified Boolean @default(false)
   createdAt DateTime @default(now()) @db.Timestamp(0)
   updatedAt DateTime @default(now()) @db.Timestamp(0)
+  session sessions[]
+}
+
+model sessions{
+  id        Int      @id @default(autoincrement())
+  expiredAt DateTime
+  userId    Int
+  token     String @unique
+  user        users    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
