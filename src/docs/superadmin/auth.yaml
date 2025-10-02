@@ -1,0 +1,40 @@
+tags:
+  - name: Superadmin - Auth
+
+paths:
+  /superadmin/auth/login:
+    post:
+      summary: Superadmin login
+      tags: [Superadmin - Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string }
+                password: { type: string }
+      responses:
+        200:
+          description: Login success
+        401:
+          description: Invalid credentials
+        400:
+          description: Bad request
+
+  /superadmin/auth/me:
+    get:
+      summary: Get current superadmin profile
+      tags: [Superadmin - Auth]
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: OK
+        401:
+          description: Unauthorized
+        404:
+          description: Not found
+

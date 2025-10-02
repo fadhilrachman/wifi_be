@@ -7,22 +7,183 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model users {
-  id        Int      @id @default(autoincrement())
-  name      String   @db.VarChar(255)
-  email     String   @unique(map: "email") @db.VarChar(255)
-  password  String?  @db.VarChar(255)
-  lastLogOut DateTime? 
-  is_email_verified Boolean @default(false)
-  createdAt DateTime @default(now()) @db.Timestamp(0)
-  updatedAt DateTime @default(now()) @db.Timestamp(0)
-  session sessions[]
+// Enums derived from DBML
+enum Package {
+  beginner
+  intermidiate
+  expert
 }
 
-model sessions{
-  id        Int      @id @default(autoincrement())
-  expiredAt DateTime
-  userId    Int
-  token     String @unique
-  user        users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+enum UserRole {
+  superadmin
+  operator
+  customer
+}
+
+enum ReportStatus {
+  open
+  solved
+  archive
+}
+
+enum InvoiceStatus {
+  unpaid
+  paid
+  archive
+}
+
+enum TransactionStatus {
+  pending
+  success
+  failed
+}
+
+// Tables derived from DBML
+model companys {
+  id                      String    @id @default(uuid()) @db.Char(36)
+  name                    String    @db.VarChar(255)
+  address                 String    @db.VarChar(255)
+  phone                   Int
+  email                   String    @db.VarChar(255)
+  logo                    String    @db.VarChar(255)
+  latitude                String    @db.VarChar(255)
+  longitude               String    @db.VarChar(255)
+  wa_billing_message      String    @db.VarChar(255)
+  wa_billing_paid_message String    @db.VarChar(255)
+  api_wa_token            String    @db.VarChar(255)
+  is_wa_notification      Boolean
+  is_email_notification   Boolean
+  package                 Package
+  created_at              DateTime  @default(now()) @db.Timestamp(0)
+  updated_at              DateTime  @updatedAt @db.Timestamp(0)
+  deleted_at              DateTime? @db.Timestamp(0)
+
+  // Relations
+  users    users[]
+  products products[]
+}
+
+model users {
+  id         String     @id @default(uuid()) @db.Char(36)
+  username   String     @db.VarChar(255)
+  email      String     @db.VarChar(255)
+  password   String?    @db.VarChar(255)
+  latitude   String     @db.VarChar(255)
+  longitude  String     @db.VarChar(255)
+  company_id String     @db.Char(36)
+  role       UserRole
+  created_at DateTime   @default(now()) @db.Timestamp(0)
+  updated_at DateTime   @updatedAt @db.Timestamp(0)
+  deleted_at DateTime?  @db.Timestamp(0)
+
+  // Relations
+  company         companys         @relation(fields: [company_id], references: [id])
+  reports         reports[]
+  invoices        invoices[]
+  notifications   notifications[]
+  report_answers  report_answers[]
+
+  @@index([company_id])
+}
+
+model products {
+  id          String     @id @default(uuid()) @db.Char(36)
+  name        String     @db.VarChar(255)
+  price       Int
+  company_id  String     @db.Char(36)
+  description String     @db.VarChar(255)
+  created_at  DateTime   @default(now()) @db.Timestamp(0)
+  updated_at  DateTime   @updatedAt @db.Timestamp(0)
+  deleted_at  DateTime?  @db.Timestamp(0)
+
+  // Relations
+  company   companys   @relation(fields: [company_id], references: [id])
+  invoices  invoices[]
+
+  @@index([company_id])
+}
+
+model reports {
+  id          String        @id @default(uuid()) @db.Char(36)
+  description String        @db.VarChar(255)
+  user_id     String        @db.Char(36)
+  role        ReportStatus
+  created_at  DateTime      @default(now()) @db.Timestamp(0)
+  updated_at  DateTime      @updatedAt @db.Timestamp(0)
+  deleted_at  DateTime?     @db.Timestamp(0)
+
+  // Relations
+  user    users           @relation(fields: [user_id], references: [id])
+  answers report_answers[]
+
+  @@index([user_id])
+}
+
+model notifications {
+  id          String    @id @default(uuid()) @db.Char(36)
+  title       String    @db.VarChar(255)
+  description String    @db.VarChar(255)
+  user_id     String    @db.Char(36)
+  created_at  DateTime  @default(now()) @db.Timestamp(0)
+  updated_at  DateTime  @updatedAt @db.Timestamp(0)
+  deleted_at  DateTime? @db.Timestamp(0)
+
+  // Relations
+  user users @relation(fields: [user_id], references: [id])
+
+  @@index([user_id])
+}
+
+model report_answers {
+  id          String    @id @default(uuid()) @db.Char(36)
+  description String    @db.VarChar(255)
+  user_id     String    @db.Char(36)
+  report_id   String    @db.Char(36)
+  created_at  DateTime  @default(now()) @db.Timestamp(0)
+  updated_at  DateTime  @updatedAt @db.Timestamp(0)
+  deleted_at  DateTime? @db.Timestamp(0)
+
+  // Relations
+  user   users   @relation(fields: [user_id], references: [id])
+  report reports @relation(fields: [report_id], references: [id])
+
+  @@index([user_id])
+  @@index([report_id])
+}
+
+model invoices {
+  id          String        @id @default(uuid()) @db.Char(36)
+  product_id  String        @db.Char(36)
+  user_id     String        @db.Char(36)
+  fixed_price Int
+  role        InvoiceStatus
+  due_date    DateTime      @db.Timestamp(0)
+  created_at  DateTime      @default(now()) @db.Timestamp(0)
+  updated_at  DateTime      @updatedAt @db.Timestamp(0)
+  deleted_at  DateTime?     @db.Timestamp(0)
+
+  // Relations
+  product      products     @relation(fields: [product_id], references: [id])
+  user         users        @relation(fields: [user_id], references: [id])
+  transactions transactions[]
+
+  @@index([product_id])
+  @@index([user_id])
+}
+
+model transactions {
+  id             String            @id @default(uuid()) @db.Char(36)
+  invoice_id     String            @db.Char(36)
+  invoice_number String            @db.VarChar(255)
+  gateway_ref    String            @db.VarChar(255)
+  role           TransactionStatus
+  payment_date   DateTime          @db.Timestamp(0)
+  created_at     DateTime          @default(now()) @db.Timestamp(0)
+  updated_at     DateTime          @updatedAt @db.Timestamp(0)
+  deleted_at     DateTime?         @db.Timestamp(0)
+
+  // Relations
+  invoice invoices @relation(fields: [invoice_id], references: [id])
+
+  @@index([invoice_id])
 }

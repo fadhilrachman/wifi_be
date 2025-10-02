@@ -1,0 +1,83 @@
+tags:
+  - name: Superadmin - Companies
+
+paths:
+  /superadmin/companies:
+    get:
+      summary: List companies
+      tags: [Superadmin - Companies]
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer }
+        - in: query
+          name: per_page
+          schema: { type: integer }
+        - in: query
+          name: package
+          schema:
+            type: string
+            enum: [beginner, intermidiate, expert]
+        - in: query
+          name: q
+          schema: { type: string }
+      responses:
+        200:
+          description: Successful response
+        500:
+          description: Internal server error
+    post:
+      summary: Create a company
+      tags: [Superadmin - Companies]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                email: { type: string }
+                phone: { type: number }
+                package:
+                  type: string
+                  enum: [beginner, intermidiate, expert]
+      responses:
+        201:
+          description: Created
+        400:
+          description: Bad request
+        500:
+          description: Internal server error
+
+  /superadmin/companies/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string }
+    get:
+      summary: Get company by ID
+      tags: [Superadmin - Companies]
+      responses:
+        200:
+          description: Successful response
+        404:
+          description: Not found
+    put:
+      summary: Update company
+      tags: [Superadmin - Companies]
+      responses:
+        200:
+          description: Updated
+        404:
+          description: Not found
+    delete:
+      summary: Soft delete company
+      tags: [Superadmin - Companies]
+      responses:
+        200:
+          description: Deleted
+        404:
+          description: Not found
+

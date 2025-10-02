@@ -1,0 +1,70 @@
+tags:
+  - name: Operator - Products
+
+paths:
+  /operator/products:
+    get:
+      summary: List products
+      tags: [Operator - Products]
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer }
+        - in: query
+          name: per_page
+          schema: { type: integer }
+        - in: query
+          name: company_id
+          schema: { type: string }
+      responses:
+        200:
+          description: Successful response
+    post:
+      summary: Create a product
+      tags: [Operator - Products]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                price: { type: number }
+                company_id: { type: string }
+                description: { type: string }
+      responses:
+        201:
+          description: Created
+
+  /operator/products/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string }
+    get:
+      summary: Get product by ID
+      tags: [Operator - Products]
+      responses:
+        200:
+          description: Successful response
+        404:
+          description: Not found
+    put:
+      summary: Update product
+      tags: [Operator - Products]
+      responses:
+        200:
+          description: Updated
+        404:
+          description: Not found
+    delete:
+      summary: Soft delete product
+      tags: [Operator - Products]
+      responses:
+        200:
+          description: Deleted
+        404:
+          description: Not found
+

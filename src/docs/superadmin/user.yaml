@@ -1,0 +1,84 @@
+tags:
+  - name: Superadmin - Users
+
+paths:
+  /superadmin/users:
+    get:
+      summary: List users
+      tags: [Superadmin - Users]
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer }
+        - in: query
+          name: per_page
+          schema: { type: integer }
+        - in: query
+          name: role
+          schema:
+            type: string
+            enum: [superadmin, operator, customer]
+        - in: query
+          name: company_id
+          schema: { type: string }
+        - in: query
+          name: q
+          schema: { type: string }
+      responses:
+        200:
+          description: Successful response
+        500:
+          description: Internal server error
+    post:
+      summary: Create a user
+      tags: [Superadmin - Users]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username: { type: string }
+                email: { type: string }
+                role:
+                  type: string
+                  enum: [superadmin, operator, customer]
+                password: { type: string }
+      responses:
+        201:
+          description: Created
+        400:
+          description: Bad request
+
+  /superadmin/users/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string }
+    get:
+      summary: Get user by ID
+      tags: [Superadmin - Users]
+      responses:
+        200:
+          description: Successful response
+        404:
+          description: Not found
+    put:
+      summary: Update user
+      tags: [Superadmin - Users]
+      responses:
+        200:
+          description: Updated
+        404:
+          description: Not found
+    delete:
+      summary: Soft delete user
+      tags: [Superadmin - Users]
+      responses:
+        200:
+          description: Deleted
+        404:
+          description: Not found
+

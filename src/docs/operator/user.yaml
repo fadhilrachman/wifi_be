@@ -1,0 +1,73 @@
+tags:
+  - name: Operator - Users
+
+paths:
+  /operator/users:
+    get:
+      summary: List customers
+      tags: [Operator - Users]
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer }
+        - in: query
+          name: per_page
+          schema: { type: integer }
+        - in: query
+          name: company_id
+          schema: { type: string }
+        - in: query
+          name: q
+          schema: { type: string }
+      responses:
+        200:
+          description: Successful response
+    post:
+      summary: Create customer
+      tags: [Operator - Users]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username: { type: string }
+                email: { type: string }
+                password: { type: string }
+                company_id: { type: string }
+      responses:
+        201:
+          description: Created
+
+  /operator/users/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string }
+    get:
+      summary: Get customer by ID
+      tags: [Operator - Users]
+      responses:
+        200:
+          description: Successful response
+        404:
+          description: Not found
+    put:
+      summary: Update customer
+      tags: [Operator - Users]
+      responses:
+        200:
+          description: Updated
+        404:
+          description: Not found
+    delete:
+      summary: Soft delete customer
+      tags: [Operator - Users]
+      responses:
+        200:
+          description: Deleted
+        404:
+          description: Not found
+
