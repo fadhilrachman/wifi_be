@@ -22,23 +22,36 @@ const baseSpec: AnyRecord = {
   paths: {},
 };
 
-const docsDir = path.join(__dirname, "docs");
+// Try to locate docs both in source (dev) and bundled (serverless) layouts
+const DOC_DIR_CANDIDATES = [
+  path.join(__dirname, "docs"),
+  path.resolve(process.cwd(), "src", "docs"),
+];
 
 function loadYamlFiles(dir: string): AnyRecord[] {
-  if (!fs.existsSync(dir)) return [];
-  const files = fs.readdirSync(dir, { withFileTypes: true });
-  const out: AnyRecord[] = [];
-  for (const f of files) {
-    const full = path.join(dir, f.name);
-    if (f.isDirectory()) {
-      out.push(...loadYamlFiles(full));
-    } else if (f.isFile() && f.name.endsWith(".yaml")) {
-      const raw = fs.readFileSync(full, "utf8");
-      const parsed = YAML.parse(raw) as AnyRecord;
-      if (parsed) out.push(parsed);
+  try {
+    if (!fs.existsSync(dir)) return [];
+    const files = fs.readdirSync(dir, { withFileTypes: true });
+    const out: AnyRecord[] = [];
+    for (const f of files) {
+      const full = path.join(dir, f.name);
+      if (f.isDirectory()) {
+        out.push(...loadYamlFiles(full));
+      } else if (f.isFile() && (f.name.endsWith(".yaml") || f.name.endsWith(".yml"))) {
+        try {
+          const raw = fs.readFileSync(full, "utf8");
+          const parsed = YAML.parse(raw) as AnyRecord;
+          if (parsed) out.push(parsed);
+        } catch (e) {
+          console.warn("Failed to parse YAML:", full, e);
+        }
+      }
     }
+    return out;
+  } catch (e) {
+    console.warn("Failed to read docs dir:", dir, e);
+    return [];
   }
-  return out;
 }
 
 function mergeSpec(target: AnyRecord, source: AnyRecord) {
@@ -68,7 +81,20 @@ function mergeSpec(target: AnyRecord, source: AnyRecord) {
   }
 }
 
-const fragments = loadYamlFiles(docsDir);
+let fragments: AnyRecord[] = [];
+for (const d of DOC_DIR_CANDIDATES) {
+  const parts = loadYamlFiles(d);
+  if (parts.length) {
+    fragments = parts;
+    break;
+  }
+}
 for (const frag of fragments) mergeSpec(baseSpec, frag);
 
 export const swaggerSpec = baseSpec;
+
+// Small helper for debugging: counts of merged items
+export const swaggerDebug = {
+  pathCount: Object.keys(baseSpec.paths || {}).length,
+  tagsCount: (baseSpec.tags || []).length,
+};
