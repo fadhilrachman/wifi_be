@@ -8,7 +8,10 @@
   ],
   "functions": {
     "api/index.ts": {
-      "includeFiles": "src/docs/**/*"
+      "includeFiles": [
+        "src/docs/**/*",
+        "node_modules/swagger-ui-dist/**/**"
+      ]
     }
   },
   "routes": [
@@ -16,5 +19,8 @@
       "src": "/(.*)",
       "dest": "api/index.ts"
     }
+  ],
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/api/index" }
   ]
 }

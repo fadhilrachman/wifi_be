@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { swaggerSpec, swaggerDebug } from "./swagger";
+import swaggerUi from "swagger-ui-express";
 
 // Routers
 import SuperadminCompanyRouter from "./routes/superadmin/company.router";
@@ -32,20 +33,36 @@ app.get(["/api-docs", "/api-docs/", "/api-docs/index.html"], (_req, res) => {
       <meta charset="utf-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
       <title>INCIT API Docs</title>
+      <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+      <link rel="preconnect" href="https://cdn.jsdelivr.net" />
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui.min.css" />
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-standalone-preset.min.css" />
       <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css" onerror="this.remove()" />
-      <style>html,body,#swagger-ui{height:100%} body{margin:0;background:#fff} #log{font:12px monospace;color:#b00;padding:8px}</style>
+      <style>
+        html,body{height:100%} body{margin:0;background:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif}
+        #header{padding:8px 12px;background:#0b111a;color:#eef} #header a{color:#8fd; text-decoration:none}
+        #swagger-ui{height:calc(100% - 40px)} #log{font:12px monospace;color:#b00;padding:8px;white-space:pre-wrap}
+      </style>
     </head>
     <body>
-      <div id="swagger-ui"></div>
+      <div id="header">INCIT API Docs • <a href="/openapi.json">openapi.json</a> • <a href="/__openapi-debug">debug</a></div>
+      <div id="swagger-ui">Loading docs…</div>
       <pre id="log" style="display:none"></pre>
       <script>
         const addScript = (src) => new Promise((resolve, reject) => {
-          const s = document.createElement('script');
-          s.src = src; s.onload = resolve; s.onerror = reject; document.head.appendChild(s);
+          const s = document.createElement('script'); s.async=true; s.defer=true; s.crossOrigin='anonymous';
+          s.src = src; s.onload = resolve; s.onerror = () => reject(new Error('Failed: '+src)); document.head.appendChild(s);
         });
         const log = (msg) => { const el=document.getElementById('log'); el.style.display='block'; el.textContent += String(msg)+'\n'; };
+        const mountRapiDoc = async () => {
+          try {
+            await addScript('https://unpkg.com/rapidoc/dist/rapidoc-min.js');
+            const c = document.getElementById('swagger-ui');
+            c.innerHTML = '<rapi-doc spec-url="/openapi.json" render-style="read" show-header="false"></rapi-doc>';
+          } catch (e) {
+            log('Failed to load fallback RapiDoc: '+ (e?.message||e));
+          }
+        };
         window.addEventListener('load', async () => {
           try {
             try {
@@ -56,6 +73,7 @@ app.get(["/api-docs", "/api-docs/", "/api-docs/index.html"], (_req, res) => {
               await addScript('https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js');
               await addScript('https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-standalone-preset.js');
             }
+            if (!window.SwaggerUIBundle) throw new Error('SwaggerUIBundle not available');
             const ui = window.SwaggerUIBundle({
               url: '/openapi.json',
               dom_id: '#swagger-ui',
@@ -67,6 +85,7 @@ app.get(["/api-docs", "/api-docs/", "/api-docs/index.html"], (_req, res) => {
             window.ui = ui;
           } catch (err) {
             log(err?.message || err);
+            await mountRapiDoc();
           }
         });
       </script>
@@ -74,6 +93,13 @@ app.get(["/api-docs", "/api-docs/", "/api-docs/index.html"], (_req, res) => {
   </html>`;
   res.status(200).setHeader("Content-Type", "text/html; charset=utf-8").send(html);
 });
+
+// Local assets fallback: serve Swagger UI from bundled swagger-ui-dist
+app.use(
+  "/api-docs-local",
+  swaggerUi.serve,
+  swaggerUi.setup(undefined, { swaggerOptions: { url: "/openapi.json" } })
+);
 
 // Quick debug route to verify spec loaded
 app.get("/__openapi-debug", (_req, res) => {
