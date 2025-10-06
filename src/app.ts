@@ -16,7 +16,7 @@ app.use(cors());
 app.use(express.json());
 
 // OpenAPI JSON for programmatic access
-app.get("/openapi.json", (req, res) => {
+app.get(["/openapi.json", "/api/openapi.json"], (req, res) => {
   const proto = (req.headers["x-forwarded-proto"] as string) || req.protocol || "https";
   const xfh = (req.headers["x-forwarded-host"] as string) || "";
   const host = xfh || (req.headers.host as string) || "localhost:4000";
@@ -26,7 +26,7 @@ app.get("/openapi.json", (req, res) => {
 
 // Swagger UI via CDN (works reliably on serverless platforms)
 // Serve docs at /api-docs and /api-docs/
-app.get(["/api-docs", "/api-docs/", "/api-docs/index.html"], (_req, res) => {
+app.get(["/api-docs", "/api-docs/", "/api-docs/index.html", "/api/api-docs", "/api/api-docs/", "/api/api-docs/index.html"], (_req, res) => {
   const html = `<!doctype html>
   <html>
     <head>
