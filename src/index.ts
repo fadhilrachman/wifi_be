@@ -19,7 +19,7 @@ app.use(express.json());
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Mount routers
-// app.use(SuperadminCompanyRouter);
+app.use(SuperadminCompanyRouter);
 app.use(SuperadminUserRouter);
 app.use(SuperadminAuthRouter);
 app.use(OperatorProductRouter);
