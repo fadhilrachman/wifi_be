@@ -1,7 +1,6 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
 import app from "../src/app";
 
 // Standard Vercel Node handler that delegates to Express
-export default function handler(req: VercelRequest, res: VercelResponse) {
+export default function handler(req: any, res: any) {
   return (app as any)(req, res);
 }

@@ -3,7 +3,8 @@
   
   "functions": {
     "api/index.ts": {
-      "includeFiles": "src/docs/**"
+      "includeFiles": "src/docs/**",
+      "runtime": "nodejs20.x"
     }
   },
   "routes": [
